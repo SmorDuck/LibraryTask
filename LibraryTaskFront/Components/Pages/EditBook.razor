@@ -1,0 +1,108 @@
+﻿@page "/edit-book/{Id:int}"
+@rendermode InteractiveServer
+
+@using LibraryTaskFront.Services;
+@using Domain;
+
+@inject LibraryServices LibraryServices
+@inject NavigationManager NavigationManager
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Book</h4>
+                </div>
+                <div class="card-body">
+                    @if (book == null)
+                    {
+                        <p><em>Loading...</em></p>
+                    }
+                    else
+                    {
+                        <div class="form-group mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <InputText id="title" class="form-control" @bind-Value="book.Title" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="author" class="form-label">Author</label>
+                            <InputText id="author" class="form-control" @bind-Value="book.Author" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="publishedDate" class="form-label">Published Date</label>
+                            <InputDate id="publishedDate" class="form-control" @bind-Value="book.PublishedDate" />
+                        </div>
+
+                        <div class="form-group form-check mb-3">
+                            <InputCheckbox id="isAvailable" class="form-check-input" @bind-Value="book.IsAvailable" />
+                            <label for="isAvailable" class="form-check-label">Is Available</label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button @onclick="HandleValidSubmit" class="btn btn-success">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                            <NavLink class="btn btn-secondary" href="/">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </NavLink>
+                        </div>
+
+                        @if (message != null)
+                        {
+                            <div class="alert mt-3 @(isSuccess ? "alert-success" : "alert-danger")" role="alert">
+                                @message
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Book book;
+    private string message;
+    private bool isSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            book = await LibraryServices.GetBookByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            message = $"An error occurred while loading the book: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var response = await LibraryServices.UpdateBookAsync(book);
+            if (response.IsSuccessStatusCode)
+            {
+                message = "Book updated successfully!";
+                isSuccess = true;
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                message = $"Error: {response.ReasonPhrase}";
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"An error occurred: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+}

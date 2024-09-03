@@ -1,0 +1,79 @@
+﻿@page "/add-book"
+@rendermode InteractiveServer
+
+@using LibraryTaskFront.Services
+@using Domain
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject NavigationManager NavigationManager
+@inject LibraryServices LibraryServices
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Add New Book</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="title" class="form-label">Title</label>
+                        <InputText id="title" class="form-control" @bind-Value="book.Title" placeholder="Enter book title" />
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label for="author" class="form-label">Author</label>
+                        <InputText id="author" class="form-control" @bind-Value="book.Author" placeholder="Enter author's name" />
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label for="publishedDate" class="form-label">Published Date</label>
+                        <InputDate id="publishedDate" class="form-control" @bind-Value="book.PublishedDate" />
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <div class="form-check">
+                            <InputCheckbox id="isAvailable" class="form-check-input" @bind-Value="book.IsAvailable" />
+                            <label for="isAvailable" class="form-check-label">Is Available</label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button class="btn btn-success" @onclick="SubmitForm">
+                            <i class="bi bi-plus-lg"></i> Add Book
+                        </button>
+                        <NavLink class="btn btn-secondary" href="/">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </NavLink>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Book book = new Book();
+
+    private async Task SubmitForm()
+    {
+        Console.WriteLine("SubmitForm called");
+
+        try
+        {
+            var response = await LibraryServices.AddBookAsync(book);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.ReasonPhrase}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+}
